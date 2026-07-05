@@ -1,13 +1,17 @@
 
-#include "client.h"
+#include "connection.h"
+#include <system_error>
+#include <unistd.h>
 #include <netinet/in.h>
 #include <cstring>
-#include <system_error>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <unistd.h>
 
-TcpClient::TcpClient(std::string host, int port) {
+TcpConnection::TcpConnection(Socket socket) : socket(std::move(socket)) {}
+
+TcpConnection TcpConnection::connect(const std::string& host, int port) {
+    Socket socket;
+
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -18,13 +22,15 @@ TcpClient::TcpClient(std::string host, int port) {
         throw std::system_error(errno, std::generic_category(), "inet_pton() failed");
     }
 
-    int result = connect(this->socket.getFd(), (struct sockaddr*)&addr, sizeof(addr));
+    int result = ::connect(socket.getFd(), (struct sockaddr*)&addr, sizeof(addr));
     if (result == -1) {
         throw std::system_error(errno, std::generic_category(), "connect() failed");
     }
+
+    return TcpConnection(std::move(socket));
 }
 
-void TcpClient::send(const std::string& data) {
+void TcpConnection::send(const std::string& data) {
     ssize_t bytesSent = write(this->socket.getFd(), data.c_str(), data.size());
 
     if (bytesSent == -1) {
@@ -32,7 +38,7 @@ void TcpClient::send(const std::string& data) {
     }
 }
 
-std::string TcpClient::receive() {
+std::string TcpConnection::receive() {
     char buffer[4096];
     ssize_t bytesRead = read(this->socket.getFd(), buffer, sizeof(buffer));
 
