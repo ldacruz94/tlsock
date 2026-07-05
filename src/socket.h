@@ -6,17 +6,17 @@
 */
 class Socket {
 
-public:
-    Socket(int fd);
-    Socket();
-    Socket(const Socket&) = delete;
-    Socket(Socket&& other) noexcept;
-    Socket& operator=(Socket&& other) noexcept;
-    Socket& operator=(const Socket&) = delete;
+    public:
+        Socket(int fd);
+        Socket();
+        Socket(const Socket&) = delete;
+        Socket(Socket&& other) noexcept;
+        Socket& operator=(Socket&& other) noexcept;
+        Socket& operator=(const Socket&) = delete;
 
-    ~Socket();
-    int getFd() const;
+        ~Socket();
+        int getFd() const;
 
-private:
-    int fd;
+    private:
+        int fd;
 };
