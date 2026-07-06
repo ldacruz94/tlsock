@@ -30,13 +30,15 @@ TcpServer::TcpServer(int port){
 }
 
 TcpConnection TcpServer::accept() {
+    return TcpConnection(this->acceptSocket());
+}
+
+Socket TcpServer::acceptSocket() {
     int connectionFd = ::accept(this->socket.getFd(), nullptr, nullptr); // might replace the nulls later if I want to capture client IPs
     
     if (connectionFd == -1) {
        throw std::system_error(errno, std::generic_category(), "accept() failed");
     }
 
-    Socket connectedSocket(connectionFd);
-    return TcpConnection(std::move(connectedSocket));
+    return Socket(connectionFd);
 }
-

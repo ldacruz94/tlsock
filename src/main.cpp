@@ -1,7 +1,8 @@
 
 #include <iostream>
 #include "server.h"
-#include "connection.h"
+#include "context.h"
+#include "tls_connection.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
@@ -16,8 +17,13 @@ int main(int argc, char* argv[]) {
             int port = std::stoi(argv[2]);
             TcpServer server = TcpServer(port);
             std::cout << "Server started on port: " << port << std::endl;
+            
+            std::string certPath = "./certs/cert.pem";
+            std::string keyPath = "./certs/key.pem";
 
-            TcpConnection conn = server.accept();
+            TlsContext serverCtx = TlsContext::forServer(certPath, keyPath);
+            TlsConnection conn = TlsConnection::acceptTls(server, serverCtx);
+
             std::string result = conn.receive();
             std::cout << result << std::endl;
             conn.send("Hello from server!");
@@ -25,12 +31,14 @@ int main(int argc, char* argv[]) {
             std::string host = argv[2];
             int port = std::stoi(argv[3]);
             
-            TcpConnection conn = TcpConnection::connect(host, port);
+            TlsContext clientCtx = TlsContext::forClient();
+            TlsConnection conn = TlsConnection::connectTls(host, port, clientCtx);
+
             conn.send("Hello from client!");
             std::string response = conn.receive();
             std::cout << response << std::endl;
         } else {
-            std::cout << "Mode can either be `server` or `client`" << std::endl;
+            std::cout << "invalid mode: Mode must be either `server` or `client`" << std::endl;
             return 1;
         }
     } catch (const std::exception& e) {
