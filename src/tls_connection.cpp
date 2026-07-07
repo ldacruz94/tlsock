@@ -78,6 +78,12 @@ TlsConnection TlsConnection::connectTls(const std::string& host, int port, const
         throw std::runtime_error("SSL_new failed");
     }
 
+    int hostSetResult = SSL_set1_host(ssl, host.c_str());
+    if (hostSetResult != 1) {
+        SSL_free(ssl);
+        throw std::runtime_error("Host set failed");
+    }
+
     int setFdResult = SSL_set_fd(ssl, socket.getFd());
     if (setFdResult != 1) {
         SSL_free(ssl);
@@ -88,6 +94,19 @@ TlsConnection TlsConnection::connectTls(const std::string& host, int port, const
     if (connectionResult != 1) {
         SSL_free(ssl);
         throw std::runtime_error("SSL connection failed!");
+    }
+
+    X509* parsedCert = SSL_get1_peer_certificate(ssl); 
+    if (parsedCert == nullptr) {
+        SSL_free(ssl);
+        throw std::runtime_error("No peer certificate - can't be trusted");
+    } 
+    X509_free(parsedCert); // no longer needed so we free it
+
+    long sslVerifyResult = SSL_get_verify_result(ssl);
+    if (sslVerifyResult != X509_V_OK) {
+        SSL_free(ssl);
+        throw std::runtime_error("SSL verify result failed");
     }
 
     return TlsConnection(std::move(socket), ssl);

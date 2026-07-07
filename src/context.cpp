@@ -33,10 +33,17 @@ SSL_CTX* TlsContext::getRaw() const {
     return this->context;
 }
 
-TlsContext TlsContext::forClient() {
+TlsContext TlsContext::forClient(const std::string& caCertPath) {
     SSL_CTX* ctx = SSL_CTX_new(TLS_client_method());
     if (ctx == nullptr) {
         throw std::runtime_error("Failed to create new SSL failed");
+    }
+
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, nullptr);
+    int result = SSL_CTX_load_verify_locations(ctx, caCertPath.c_str(), nullptr);
+    if (result != 1) {
+        SSL_CTX_free(ctx);
+        throw std::runtime_error("ca cert path verification failed");
     }
 
     return TlsContext(ctx);

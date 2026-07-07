@@ -31,7 +31,8 @@ int main(int argc, char* argv[]) {
             std::string host = argv[2];
             int port = std::stoi(argv[3]);
             
-            TlsContext clientCtx = TlsContext::forClient();
+            std::string certPath = "./certs/cert.pem";
+            TlsContext clientCtx = TlsContext::forClient(certPath);
             TlsConnection conn = TlsConnection::connectTls(host, port, clientCtx);
 
             conn.send("Hello from client!");

@@ -15,7 +15,7 @@
 class TlsContext {
 
     public: 
-        static TlsContext forClient();
+        static TlsContext forClient(const std::string& caCertPath);
         static TlsContext forServer(const std::string& certPath, const std::string& keyPath);
         ~TlsContext();
         
