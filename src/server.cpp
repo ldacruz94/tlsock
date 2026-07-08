@@ -21,7 +21,7 @@ TcpServer::TcpServer(int port){
         throw std::system_error(errno, std::generic_category(), "bind() failed");
     }
 
-    int totalPendingConnections = 5; // default amount of pending connections that server will listen to before rejecting new ones
+    int totalPendingConnections = 150; // default amount of pending connections that server will listen to before rejecting new ones
     int listenResult = listen(this->socket.getFd(), totalPendingConnections);
 
     if (listenResult == -1) {
