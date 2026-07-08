@@ -3,6 +3,17 @@
 #include "server.h"
 #include "context.h"
 #include "tls_connection.h"
+#include <thread>
+
+void connectionFlow(TlsConnection conn) {
+    try {
+        std::string result = conn.receive();
+        std::cout << result << std::endl;
+        conn.send("Hello from server!");
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
@@ -22,11 +33,12 @@ int main(int argc, char* argv[]) {
             std::string keyPath = "./certs/key.pem";
 
             TlsContext serverCtx = TlsContext::forServer(certPath, keyPath);
-            TlsConnection conn = TlsConnection::acceptTls(server, serverCtx);
-
-            std::string result = conn.receive();
-            std::cout << result << std::endl;
-            conn.send("Hello from server!");
+            
+            while (true) {
+                TlsConnection conn = TlsConnection::acceptTls(server, serverCtx);
+                std::thread(connectionFlow, std::move(conn)).detach();
+            };
+            
         } else if (mode == "client") {
             std::string host = argv[2];
             int port = std::stoi(argv[3]);
