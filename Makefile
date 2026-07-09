@@ -1,7 +1,7 @@
 BUILD_DIR := build
 BIN := tlsock
 
-.PHONY: all build run clean
+.PHONY: all build run clean test
 
 all: build
 
@@ -11,6 +11,9 @@ build:
 
 run: build
 	./$(BUILD_DIR)/$(BIN)
+
+test:
+	cd $(BUILD_DIR) && ctest --output-on-failure
 
 clean:
 	rm -rf $(BUILD_DIR)
